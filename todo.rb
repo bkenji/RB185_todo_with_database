@@ -3,6 +3,9 @@ require 'sinatra/reloader' if development?
 require 'sinatra/content_for'
 require 'tilt/erubis'
 
+require_relative 'session_persistence'
+require 'pg'
+
 configure do
   enable :sessions
   set :session_secret, 'ffb0ae7a3db963272cc584ec05b3afee945aca81f98972151b162c4cccea32e9'
@@ -30,10 +33,6 @@ helpers do
   def remaining_todos_count(list)
     list[:todos].count { |todo| todo[:completed] == false }
   end
-
-  # def sort_list!(list) # original solution
-  #   list.sort_by! { |todo| todo[:completed] ? 1 : 0 }
-  # end
 
   def sort_todos(todos)
     complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
@@ -66,8 +65,6 @@ get '/' do
   redirect '/lists'
 end
 
-
-
 # View list of lists
 get '/lists' do
   @todos = @lists
@@ -93,7 +90,6 @@ def list_name_error
   end
 end
 
-
 # Create a new list
 post '/lists' do
   @list_name = params[:list_name].strip
@@ -110,74 +106,6 @@ end
 
 def valid_id?
   params[:list_id].to_i.to_s == params[:list_id]
-end
-
-class SessionPersistence
-  def initialize(session)
-    @session = session
-    @session[:lists] ||= []
-  end
-
-  def find_list(id)
-    @session[:lists].find { |list| list[:id] == id}
-  end
-
-  def all_lists
-    @session[:lists]
-  end
-
-  def create_list(name)
-   id = next_list_id(all_lists)
-   all_lists << { name: name, todos: [], id: id }
-  end 
-
-  def delete_list(id)
-    all_lists.reject! {|list| list[:id].to_s == id}
-  end
-
-  def update_list_name(id, new_name)
-    list = find_list(id)
-    list[:name] = new_name
-  end
-
-  def create_new_todo(todos, todo_name)
-    id = next_todo_id(todos)
-    todos << { id: id, name: todo_name, completed: false }
-  end
-
-  def delete_todo(todos, todo_id)
-       todos.reject! {|todo| todo[:id] == todo_id}
-  end
-
-  def update_todo_status(todo, new_status)
-    todo[:completed] = new_status
-  end
-
-  def complete_all_todos(todos)
-    todos.each { |todo| todo[:completed] = true }
-  end
-
-  def error=(error_msg)
-    @session[:error] = error_msg
-  end
-
-  def success=(success_msg)
-    @session[:success] = success_msg
-  end 
-
-  def clear_session
-    @session.clear
-  end
-
-  private
-
-  def next_list_id(all_lists)
-    all_lists.map { |list| list[:id]}.max.to_i + 1
-  end
-
-  def next_todo_id(list)
-    list.map { |todo| todo[:id] }.max.to_i + 1 
-  end 
 end
 
 def load_list(id)
