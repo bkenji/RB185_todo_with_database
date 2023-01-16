@@ -1,0 +1,20 @@
+<ul id="lists">
+  <% sort_lists(@lists) do |list| %>
+    <li class=<%= ('complete' if list_completed?(list)) %>>
+      <a href="/lists/<%= list[:id] %>">
+        <h2><%= list[:name] %></h2>
+        <p><%= "#{ remaining_todos_count(list) } / #{ todos_count(list) }" %></p>
+      </a> 
+    </li> 
+    
+  <% end %>
+</ul>
+
+  <% content_for :header_links do %>
+   <a href="/lists/new" class="add">New List</a>
+  <% end %>
+
+  <% content_for :header_links do%>
+   <a href="/clear" class="delete" action="/clear"> Clear lists </a> 
+  <% end %> 
+ 
