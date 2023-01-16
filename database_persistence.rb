@@ -14,7 +14,7 @@ class DatabasePersistence
     sql = "SELECT * FROM lists WHERE id = $1;"
     result = query(sql, id)
 
-     tuple = result.first
+    tuple = result.first
     {id:tuple["id"], name: tuple["name"], todos:[]}
   end
 
@@ -29,16 +29,17 @@ class DatabasePersistence
   def create_list(name)
     sql = "INSERT INTO lists(name)
            VALUES($1);"
-    result = @db.exec_params(sql, name)
+    result = query(sql, name)
   end 
 
   def delete_list(id)
-    # all_lists.reject! {|list| list[:id].to_s == id}
+    sql = "DELETE FROM lists WHERE id = $1;"
+    result = query(sql,id)
   end
 
   def update_list_name(id, new_name)
-    # list = find_list(id)
-    # list[:name] = new_name
+    sql = "UPDATE lists SET name = $1 WHERE id = $2"
+    result = query(sql, new_name, id)
   end
 
   def create_new_todo(todos, todo_name)
