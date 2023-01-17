@@ -1,5 +1,4 @@
 require 'sinatra'
-require 'sinatra/reloader' if development?
 require 'sinatra/content_for'
 require 'tilt/erubis'
 require_relative 'database_persistence'
@@ -8,6 +7,10 @@ configure do
   enable :sessions
   set :session_secret, 'ffb0ae7a3db963272cc584ec05b3afee945aca81f98972151b162c4cccea32e9'
   set :erb, :escape_html => true
+end
+
+configure(:development) do
+  require 'sinatra/reloader'
   also_reload "database_persistence.rb"
 end
 
@@ -190,12 +193,12 @@ end
 
 # Delete todo item from individual list
 post '/lists/:list_id/todos/:todo_id/delete' do
-  @list_id = params[:list_id].to_i
+  @list_id = params[:list_id]
   @list = load_list(@list_id)
 
   @todos = @list[:todos]
-  @todo_id = params[:todo_id].to_i
-  @storage.delete_todo(@todos, @todo_id)
+  @todo_id = params[:todo_id]
+  @storage.delete_todo(@list_id, @todo_id)
 
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
    status 204
