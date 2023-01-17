@@ -2,7 +2,6 @@ require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/content_for'
 require 'tilt/erubis'
-
 require_relative 'database_persistence'
 
 configure do
@@ -26,11 +25,11 @@ helpers do
   end
 
   def todos_count(list)
-    list[:todos].size
+    list[:todos].count
   end
 
   def remaining_todos_count(list)
-    list[:todos].count { |todo| todo[:completed] == false }
+    list[:todos].count { |todo| !todo[:completed]} 
   end
 
   def sort_todos(todos)
@@ -53,7 +52,7 @@ helpers do
 end
 
 before do
-  @storage = DatabasePersistence.new
+  @storage = DatabasePersistence.new(logger)
   @lists = @storage.all_lists
 
   # @list_id = params[:list_id].to_i
@@ -182,7 +181,7 @@ post '/lists/:list_id/todos' do
     session[:error] = todo_name_error
     erb :list, layout: :layout
   else
-    @storage.create_new_todo(@todos, @todo_name) 
+    @storage.create_new_todo(@list_id, @todo_name) 
     session[:success] = 'Todo item was successfully added.'
     redirect "/lists/#{@list_id}"
   end
@@ -206,7 +205,7 @@ post '/lists/:list_id/todos/:todo_id/delete' do
 end
 
 def completed?
-  @todo[:completed] ? 'completed' : 'not yet completed'
+  !@todo[:completed] ? 'completed' : 'not yet completed'
 end
 
 # Update status of a todo
@@ -214,12 +213,12 @@ post '/lists/:list_id/todos/:todo_id' do
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
   @todos = @list[:todos]
-  @todo_id = params[:todo_id].to_i
+  @todo_id = params[:todo_id]
   @todo = @todos.find {|todo| todo[:id] == @todo_id}
   
-  is_completed = params[:completed] == "true"
+  is_completed = params[:completed] == "t" 
 
-  @storage.update_todo_status(@todo, is_completed)
+  @storage.update_todo_status(@todo_id, is_completed)
   
   session[:success] = "\"#{@todo[:name]}\" has been marked as #{completed?}."
   redirect "lists/#{@list_id}"
@@ -227,18 +226,18 @@ end
 
 # Check all todos as complete for a list
 post '/lists/:list_id/todo_all' do
-  @list_id = params[:list_id].to_i
+  @list_id = params[:list_id]
   @list = load_list(@list_id)
   @todos = @list[:todos]
 
-  @storage.complete_all_todos(@todos)
+  @storage.complete_all_todos(@list_id)
   session[:success] = 'All todos have been updated.'
 
   redirect "lists/#{@list_id}"
 end
 
 get '/clear' do
-  @storage.clear_session
+  @storage.clear_lists
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     session[:success] = "All lists deleted."
     "/lists"

@@ -1,12 +1,14 @@
 require "pg"
+require "pry"
 
 class DatabasePersistence
-  def initialize
+  def initialize(logger)
     @db = PG.connect(dbname: 'todos')
+    @logger = logger
   end
 
   def query(statement, *params)
-    puts "#{statement} #{params}"
+    @logger.info "#{statement} #{params}"
     @db.exec_params(statement, params)
   end
 
@@ -15,14 +17,18 @@ class DatabasePersistence
     result = query(sql, id)
 
     tuple = result.first
-    {id:tuple["id"], name: tuple["name"], todos:[]}
+    {id:tuple["id"], name: tuple["name"], todos: todos_list(id)}
   end
 
   def all_lists
     sql = "SELECT * FROM lists;"
     result = query(sql)
+
     result.map do |tuple|
-     {id:tuple["id"], name: tuple["name"] , todos: []}
+      list_id = tuple["id"]
+
+      
+      {id:list_id, name: tuple["name"] , todos: todos_list(list_id)}
     end
   end
 
@@ -42,32 +48,45 @@ class DatabasePersistence
     result = query(sql, new_name, id)
   end
 
-  def create_new_todo(todos, todo_name)
-    # id = next_todo_id(todos)
-    # todos << { id: id, name: todo_name, completed: false }
+  def todos_list(list_id)
+    sql = "SELECT * FROM todos WHERE list_id = $1"
+    result = query(sql, list_id)
+    result.map do |todo_tuple|
+      {id:todo_tuple["id"], name: todo_tuple["name"], completed: todo_tuple["completed"] == "t"}
+    end
+  end
+
+  def create_new_todo(list_id, todo_name)
+    sql = "INSERT INTO todos(name, list_id)
+           VALUES ($1, $2)"
+    result = query(sql, todo_name, list_id.to_s)
   end
 
   def delete_todo(todos, todo_id)
-      #  todos.reject! {|todo| todo[:id] == todo_id}
+    sql = "DELETE FROM todos 
+           WHERE id = $1"
+    result = query(sql, todo_id)
   end
 
-  def update_todo_status(todo, new_status)
-    # todo[:completed] = new_status
+  def update_todo_status(todo_id, new_status)
+    sql = "UPDATE todos
+           SET completed = $2
+           WHERE id = $1"
+
+    result = query(sql, todo_id, new_status)
   end
 
-  def complete_all_todos(todos)
-    # todos.each { |todo| todo[:completed] = true }
+  def complete_all_todos(list_id)
+    sql = "UPDATE todos 
+          SET completed = 'true'
+          WHERE list_id = $1"
+
+    result = query(sql, list_id)
   end
 
-  def error=(error_msg)
-    # @session[:error] = error_msg
-  end
+  def clear_lists
+    sql = "DELETE FROM lists"
 
-  def success=(success_msg)
-    # @session[:success] = success_msg
-  end 
-
-  def clear_session
-    # @session.clear
+    result = query(sql)
   end
 end
