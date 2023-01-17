@@ -1,2 +1,2 @@
-require './todo'
+require "./todo.rb"
 run Sinatra::Application
