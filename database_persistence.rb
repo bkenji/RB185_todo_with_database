@@ -21,6 +21,7 @@ class DatabasePersistence
     result = query(sql, id)
 
     tuple = result.first
+    return nil if tuple.nil?
     {id:tuple["id"], name: tuple["name"], todos: todos_list(id)}
   end
 
