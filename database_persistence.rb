@@ -17,6 +17,7 @@ class DatabasePersistence
 
   def find_list(id)
     sql = "SELECT * FROM lists WHERE id = $1;"
+ 
     result = query(sql, id)
 
     tuple = result.first
@@ -24,14 +25,31 @@ class DatabasePersistence
   end
 
   def all_lists
-    sql = "SELECT * FROM lists;"
+    # sql = "SELECT * FROM lists;"
+    
+    # sql = "SELECT lists.*, 
+    #        count(todos.id) todos_count_completed, 
+    #        count (
+    #          (SELECT todos.id WHERE completed = 'false')
+    #              ) todos_count_not_completed
+    # FROM lists
+    # LEFT JOIN todos ON lists.id = list_id
+    # GROUP BY lists.id;"
+
+    sql =  "SELECT lists.*, 
+             count(todos.id) todos_count, 
+             count(NULLIF(todos.completed, true)) todos_remaining
+           FROM lists
+           LEFT JOIN todos ON lists.id = list_id
+           GROUP BY lists.id;"
     result = query(sql)
 
     result.map do |tuple|
-      list_id = tuple["id"]
-
-      
-      {id:list_id, name: tuple["name"] , todos: todos_list(list_id)}
+      { id:tuple["id"],
+        name: tuple["name"] , 
+        todos_count: tuple["todos_count"],
+        todos_remaining: tuple["todos_remaining"]
+      }
     end
   end
 
