@@ -19,10 +19,10 @@ helpers do
     if list[:todos].nil?
       (todos_count(list).positive? &&
        remaining_todos_count(list).zero?)
-   else
+    else
       (list[:todos].size.positive? &&
        list[:todos].all? {|todo| todo[:completed]})
-   end
+    end
   end
 
   def todo_class(todo)
