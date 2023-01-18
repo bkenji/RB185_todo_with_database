@@ -16,14 +16,19 @@ end
 
 helpers do
   def list_completed?(list)
-   list[:todos].size.positive? &&
-   list[:todos].all? {|todo| todo[:completed] == true}
+    if list[:todos].nil?
+      (todos_count(list).positive? &&
+       remaining_todos_count(list) == 0)
+   else
+      (list[:todos].size.positive? &&
+       list[:todos].all? {|todo| todo[:completed] == true})
+   end
   end
 
-  def list_main_page_completed?(list)
-    todos_count(list).positive? &&
-    remaining_todos_count(list) == 0
-  end
+  # def list_main_page_completed?(list)
+  #   todos_count(list).positive? &&
+  #   remaining_todos_count(list) == 0
+  # end
 
   def todo_class(todo)
     'complete' if todo[:completed]
@@ -53,7 +58,7 @@ helpers do
   # end
 
   def sort_lists(lists)
-    complete_lists, incomplete_lists = lists.partition { |list| list_main_page_completed?(list) }
+    complete_lists, incomplete_lists = lists.partition { |list| list_completed?(list) }
 
     incomplete_lists.each { |list| yield list, lists.index(list) }
     complete_lists.each { |list| yield list, lists.index(list) }
