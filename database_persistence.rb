@@ -41,7 +41,8 @@ class DatabasePersistence
              count(NULLIF(todos.completed, true)) todos_remaining
            FROM lists
            LEFT JOIN todos ON lists.id = list_id
-           GROUP BY lists.id;"
+           GROUP BY lists.id
+           ORDER BY lists.id;"
     result = query(sql)
 
     result.map do |tuple|
