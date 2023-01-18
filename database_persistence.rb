@@ -28,6 +28,29 @@ class DatabasePersistence
     }
   end
 
+  # LS implementation unifying the representation of the list returned so as to render the conditional branching in the `list_completed?` method in the main application unnecessary:
+
+  # def find_list(id)
+  #   sql =  "SELECT lists.*, 
+  #            count(todos.id) todos_count, 
+  #            count(NULLIF(todos.completed, true)) todos_remaining
+  #          FROM lists
+  #          LEFT JOIN todos ON lists.id = list_id
+  #          WHERE lists.id = $1
+  #          GROUP BY lists.id
+  #          ORDER BY lists.id;"
+ 
+  #   result = query(sql, id)
+
+  #   tuple = result.first
+  #   return nil if tuple.nil?
+  #   {id:tuple["id"], 
+  #    name: tuple["name"], 
+  #    todos: todos_list(id),
+  #    todos_count: tuple["todos_count"], 
+  #    todos_remaining: tuple["todos_remaining"]}
+  # end
+
   def all_lists
 
     # Original query (n + 1):
