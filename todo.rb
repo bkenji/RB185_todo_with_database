@@ -18,25 +18,16 @@ helpers do
   def list_completed?(list)
     if list[:todos].nil?
       (todos_count(list).positive? &&
-       remaining_todos_count(list) == 0)
+       remaining_todos_count(list).zero?)
    else
       (list[:todos].size.positive? &&
-       list[:todos].all? {|todo| todo[:completed] == true})
+       list[:todos].all? {|todo| todo[:completed]})
    end
   end
-
-  # def list_main_page_completed?(list)
-  #   todos_count(list).positive? &&
-  #   remaining_todos_count(list) == 0
-  # end
 
   def todo_class(todo)
     'complete' if todo[:completed]
   end
-
-  # def all_checked?(todos)
-  #   todos.all? { |todo| todo[:completed] }
-  # end
 
   def todos_count(list)
     list[:todos_count].to_i
