@@ -22,13 +22,19 @@ class DatabasePersistence
 
     tuple = result.first
     return nil if tuple.nil?
-    {id:tuple["id"], name: tuple["name"], todos: todos_list(id)}
+    { id:tuple["id"], 
+      name: tuple["name"],
+      todos: todos_list(id) 
+    }
   end
 
   def all_lists
-    # sql = "SELECT * FROM lists;"
+
+    # Original query (n + 1):
+    # sql = "SELECT * FROM lists;"    
     
-    # sql = "SELECT lists.*, 
+    # Alternative optimization w/ subqueries:
+    # sql = "SELECT lists.*,    
     #        count(todos.id) todos_count_completed, 
     #        count (
     #          (SELECT todos.id WHERE completed = 'false')
@@ -37,6 +43,7 @@ class DatabasePersistence
     # LEFT JOIN todos ON lists.id = list_id
     # GROUP BY lists.id;"
 
+    # Optimized query using JOIN clauses and NULLIF function:
     sql =  "SELECT lists.*, 
              count(todos.id) todos_count, 
              count(NULLIF(todos.completed, true)) todos_remaining
