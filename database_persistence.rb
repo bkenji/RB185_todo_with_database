@@ -157,6 +157,14 @@ class DatabasePersistence
     result.field_values("username")
   end
 
+  def add_new_user(username, password)
+    sql = "INSERT INTO users(username, encrypted_pw)
+      VALUES($1, $2)"
+
+    result = query(sql, username, password)
+
+  end
+
   def verify_password(password)
     sql = "SELECT encrypted_pw FROM users
           WHERE encrypted_pw = $1"

@@ -22,6 +22,11 @@ helpers do
     session[:username]
   end
 
+  def valid_username?(username)
+    !existing_username?(username) &&
+    username =~ /^[A-Za-z0-9_]+$/
+  end
+
   def list_completed?(list)
     if list[:todos].nil?
       (todos_count(list).positive? &&
@@ -88,6 +93,18 @@ get '/signup' do
   erb :signup, layout: :layout
 end
 
+post '/signup' do
+  if valid_username?(params[:username])# &&
+   # valid_password?(params[:password]) 
+    @storage.add_new_user(params[:username], params[:password])
+    session[:username] = params[:username] 
+    redirect '/'
+  else
+    session[:error] = "Invalid username or password."
+    redirect '/signup'
+  end
+end
+
 post '/login' do
   username = params[:username]
   password = params[:password]
@@ -108,6 +125,7 @@ end
 
 # View list of lists
 get '/lists' do
+  redirect '/' unless logged_in?
   @todos = @lists
   erb :lists, layout: :layout
 end
@@ -160,6 +178,7 @@ end
 
 # Retrieve individual lists
 get '/lists/:list_id' do
+  redirect '/' unless logged_in?
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
   @todos = @list[:todos]
@@ -169,6 +188,7 @@ end
 
 # Edit an existing todo list
 get '/lists/:list_id/edit' do
+  redirect '/' unless logged_in?
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
   erb :edit_list, layout: :layout
@@ -280,6 +300,8 @@ post '/lists/:list_id/todo_all' do
 end
 
 get '/clear' do
+  redirect '/' unless logged_in?
+  
   @storage.clear_lists
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     session[:success] = "All lists deleted."
