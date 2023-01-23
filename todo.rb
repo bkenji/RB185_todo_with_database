@@ -301,8 +301,8 @@ end
 
 get '/clear' do
   redirect '/' unless logged_in?
-  
-  @storage.clear_lists
+
+  @storage.clear_lists(@user)
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     session[:success] = "All lists deleted."
     "/lists"

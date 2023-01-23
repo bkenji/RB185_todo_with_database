@@ -143,10 +143,12 @@ class DatabasePersistence
     result = query(sql, list_id)
   end
 
-  def clear_lists
-    sql = "DELETE FROM lists"
+  def clear_lists(user)
+    user_id = find_user_id(user)
+    sql = "DELETE FROM lists 
+           WHERE user_id = $1"
 
-    result = query(sql)
+    result = query(sql, user_id)
   end
 
 # login-related logic:
@@ -162,7 +164,6 @@ class DatabasePersistence
       VALUES($1, $2)"
 
     result = query(sql, username, password)
-
   end
 
   def verify_password(password)
