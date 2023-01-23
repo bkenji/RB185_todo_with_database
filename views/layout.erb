@@ -11,9 +11,17 @@
   </head>
   <body>
     <header>
-      <h1><a href="/lists">Todo Tracker</a></h1>
+      <h1><a href="/">Todo Tracker</a></h1>
     <div class="actions">
       <%== yield_content :header_links %>
+    </div>
+    <div class="login">
+
+     <%if session[:username]%> Logged in as <i><%=session[:username]%></i>
+     <%end%>
+      <% if session[:username] %>
+      [Not <a class="login" href="/signout"> <%=session[:username]%>?</a>]
+      <% end %>
     </div>
     </header>
     
@@ -32,6 +40,7 @@
     </div>
 
     <main>
+
       <%== yield %>
     </main>
   </body>

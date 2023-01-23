@@ -2,6 +2,7 @@ require 'sinatra'
 require 'sinatra/content_for'
 require 'tilt/erubis'
 require_relative 'database_persistence'
+require_relative 'simple_login'
 
 configure do
   enable :sessions
@@ -12,9 +13,15 @@ end
 configure(:development) do
   require 'sinatra/reloader'
   also_reload "database_persistence.rb"
+  also_reload "simple_login.rb"
 end
 
 helpers do
+
+  def logged_in?
+    session[:username]
+  end
+
   def list_completed?(list)
     if list[:todos].nil?
       (todos_count(list).positive? &&
@@ -58,14 +65,45 @@ end
 
 before do
   @storage = DatabasePersistence.new(logger)
-  @lists = @storage.all_lists
+  @user = session[:username]
+  @lists = @storage.all_lists(@user)
 
   # @list_id = params[:list_id].to_i
 end
 
 # Root
 get '/' do
-  redirect '/lists'
+  if logged_in?
+   redirect '/lists'
+  else
+    redirect '/login'
+  end
+end
+
+get '/login' do
+  erb :login, layout: :layout
+end
+
+get '/signup' do
+  erb :signup, layout: :layout
+end
+
+post '/login' do
+  username = params[:username]
+  password = params[:password]
+
+  if valid_login?(username, password)
+    session[:username] = username 
+    redirect '/lists'
+  else
+    session[:error] = "Login invalid."
+    redirect '/'
+  end
+end
+
+get '/signout' do
+  session[:username] = nil
+  redirect '/'
 end
 
 # View list of lists
@@ -101,7 +139,7 @@ post '/lists' do
     session[:error] = list_name_error
     erb :new_list, layout: :layout
   else
-    @storage.create_list(@list_name)
+    @storage.create_list(@list_name, session[:username])
     session[:success] = 'List created successfully.'
     redirect '/lists'
   end

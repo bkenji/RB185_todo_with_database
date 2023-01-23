@@ -1,4 +1,6 @@
 require "pg"
+require_relative "simple_login.rb"
+
 
 class DatabasePersistence
   def initialize(logger)
@@ -51,7 +53,7 @@ class DatabasePersistence
   #    todos_remaining: tuple["todos_remaining"]}
   # end
 
-  def all_lists
+  def all_lists(user)
 
     # Original query (n + 1):
     # sql = "SELECT * FROM lists;"    
@@ -67,14 +69,17 @@ class DatabasePersistence
     # GROUP BY lists.id;"
 
     # Optimized query using JOIN clauses and NULLIF function:
+
+    user_id = find_user_id(user)
     sql =  "SELECT lists.*, 
              count(todos.id) todos_count, 
              count(NULLIF(todos.completed, true)) todos_remaining
            FROM lists
            LEFT JOIN todos ON lists.id = list_id
+           WHERE user_id = $1
            GROUP BY lists.id
            ORDER BY lists.id;"
-    result = query(sql)
+    result = query(sql, user_id)
 
     result.map do |tuple|
       { id:tuple["id"],
@@ -85,10 +90,11 @@ class DatabasePersistence
     end
   end
 
-  def create_list(name)
-    sql = "INSERT INTO lists(name)
-           VALUES($1);"
-    result = query(sql, name)
+  def create_list(list_name, username)
+    user_id = find_user_id(username)
+    sql = "INSERT INTO lists(name, user_id)
+           VALUES($1, $2);"
+    result = query(sql, list_name, user_id)
   end 
 
   def delete_list(id)
@@ -141,5 +147,27 @@ class DatabasePersistence
     sql = "DELETE FROM lists"
 
     result = query(sql)
+  end
+
+# login-related logic:
+
+  def usernames
+    sql = "SELECT username FROM users"
+    result = query(sql)
+    result.field_values("username")
+  end
+
+  def verify_password(password)
+    sql = "SELECT encrypted_pw FROM users
+          WHERE encrypted_pw = $1"
+    result = query(sql, password)
+    result.field_values("encrypted_pw")
+  end
+
+  def find_user_id(username) # used by create_list
+    sql = "SELECT id FROM users
+          WHERE username = $1"
+    result = query(sql, username)
+    result.field_values("id").first
   end
 end
