@@ -179,4 +179,13 @@ class DatabasePersistence
     result = query(sql, username)
     result.field_values("id").first
   end
+
+  def verify_user(user, list)
+    user_id = find_user_id(user)
+    sql = "SELECT 1 FROM lists
+           JOIN users ON user_id = users.id
+           WHERE user_id = $1 AND lists.id = $2"
+    result = query(sql, user_id, list)
+    !result.ntuples.zero?
+  end
 end

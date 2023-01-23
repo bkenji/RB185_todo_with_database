@@ -22,6 +22,10 @@ helpers do
     session[:username]
   end
 
+  def authorized_user?(user, list)
+    @storage.verify_user(user, list)
+  end
+
   def valid_username?(username)
     !existing_username?(username) &&
     username =~ /^[A-Za-z0-9_]+$/
@@ -178,7 +182,7 @@ end
 
 # Retrieve individual lists
 get '/lists/:list_id' do
-  redirect '/' unless logged_in?
+  redirect '/' unless logged_in? && authorized_user?(@user, params[:list_id])
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
   @todos = @list[:todos]
@@ -188,7 +192,7 @@ end
 
 # Edit an existing todo list
 get '/lists/:list_id/edit' do
-  redirect '/' unless logged_in?
+  redirect '/' unless logged_in? && authorized_user?(@user, params[:list_id])
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
   erb :edit_list, layout: :layout
