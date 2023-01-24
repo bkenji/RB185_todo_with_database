@@ -22,6 +22,6 @@ DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   id serial PRIMARY KEY,
   username text NOT NULL UNIQUE,
-  hashed_pw text NOT NULL
+  hashed_pw text NOT NULL,
   CHECK (username ~ '^[A-Za-z0-9_]+$')
 );
