@@ -3,13 +3,11 @@ require 'sinatra/content_for'
 require 'tilt/erubis'
 require 'bcrypt'
 
-
 require_relative 'database_persistence'
 require_relative 'simple_login'
 
 configure do
   enable :sessions
-  # set :session_secret, 'ffb0ae7a3db963272cc584ec05b3afee945aca81f98972151b162c4cccea32e9'
   set :erb, :escape_html => true
 end
 
@@ -21,6 +19,8 @@ end
 
 helpers do
 
+# SESSION-BASED USER IDENTIFICATION:
+
   def logged_in?
     session[:username]
   end
@@ -28,6 +28,8 @@ helpers do
   def authorized_user?(user, list)
     @storage.verify_user(user, list)
   end
+
+# LIST/TODOS SORTING LOGIC:
 
   def list_completed?(list)
     if list[:todos].nil?
@@ -58,10 +60,6 @@ helpers do
     complete_todos.each { |todo| yield todo, todos.index(todo) }
   end
 
-  # def sort_lists(lists) # original solution
-  #   lists.sort_by! { |list| list_completed?(list) ? 1 : 0 }
-  # end
-
   def sort_lists(lists)
     complete_lists, incomplete_lists = lists.partition { |list| list_completed?(list) }
 
@@ -74,11 +72,11 @@ before do
   @storage = DatabasePersistence.new(logger)
   @user = session[:username]
   @lists = @storage.all_lists(@user)
-
-  # @list_id = params[:list_id].to_i
 end
 
-# Root
+# ROUTES:
+
+# Sign-in/Sign-up
 get '/' do
   if logged_in?
    redirect '/lists'
@@ -89,6 +87,19 @@ end
 
 get '/login' do
   erb :login, layout: :layout
+end
+
+post '/login' do
+  username = params[:username]
+  password = params[:password]
+  
+  if valid_login?(username, password)
+    session[:username] = username 
+    redirect '/lists'
+  else
+    session[:error] = "Login invalid."
+    redirect '/'
+  end
 end
 
 get '/signup' do
@@ -110,19 +121,6 @@ post '/signup' do
   else
     session[:error] = "Invalid username or password."
     redirect '/signup'
-  end
-end
-
-post '/login' do
-  username = params[:username]
-  password = params[:password]
-  
-  if valid_login?(username, password)
-    session[:username] = username 
-    redirect '/lists'
-  else
-    session[:error] = "Login invalid."
-    redirect '/'
   end
 end
 
@@ -307,6 +305,7 @@ post '/lists/:list_id/todo_all' do
   redirect "lists/#{@list_id}"
 end
 
+# Clear all lists (user-specific)
 get '/clear' do
   redirect '/' unless logged_in?
 
@@ -317,5 +316,4 @@ get '/clear' do
   else
     redirect '/lists'
   end
-  
 end
