@@ -2,6 +2,7 @@ require 'sinatra'
 require 'sinatra/content_for'
 require 'tilt/erubis'
 
+
 require_relative 'database_persistence'
 require_relative 'simple_login'
 
@@ -96,11 +97,15 @@ get '/signup' do
 end
 
 post '/signup' do
-  if valid_username?(params[:username])# &&
-   # valid_password?(params[:password]) 
+  bcrypt_pw = params[:password]
+  if valid_username?(params[:username]) &&
+   params[:password].strip != ""
     @storage.add_new_user(params[:username], params[:password])
     session[:username] = params[:username] 
     redirect '/'
+  elsif existing_username?(params[:username])
+    session[:error] = "Username already exists."
+    redirect '/signup'
   else
     session[:error] = "Invalid username or password."
     redirect '/signup'

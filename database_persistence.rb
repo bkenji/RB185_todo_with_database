@@ -166,10 +166,11 @@ class DatabasePersistence
     result = query(sql, username, password)
   end
 
-  def verify_password(password)
+  def verify_password(user, password)
     sql = "SELECT hashed_pw FROM users
-          WHERE hashed_pw = $1"
-    result = query(sql, password)
+          WHERE hashed_pw = $1 AND
+            username = $2"
+    result = query(sql, password, user)
     result.field_values("hashed_pw")
   end
 
