@@ -91,6 +91,14 @@ main > form {
   margin-top: 1.5em; 
 }
 
+div.empty_list {
+  margin-top:100px;
+  font-family: sans-serif, Arial, Helvetica, sans-serif;
+  font-size:200%;
+  text-align:center;
+  color:#a4a4a4;
+}
+
 form.login {
   width: 50%;
 }

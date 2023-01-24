@@ -1,4 +1,7 @@
 <ul id="lists">
+  <%if @lists.empty?%>
+    <div class="empty_list">Use the menu to create a new list.</div>
+  <%else%>
   <% sort_lists(@lists) do |list| %>
     <li class=<%= ('complete' if list_completed?(list)) %>>
       <a href="/lists/<%= list[:id] %>">
@@ -7,6 +10,7 @@
       </a> 
     </li> 
   <% end %>
+  <%end%>
 </ul>
 
   <% content_for :header_links do %>
