@@ -2,8 +2,6 @@ require 'sinatra'
 require 'sinatra/content_for'
 require 'tilt/erubis'
 
-require "bcrypt"
-
 require_relative 'database_persistence'
 require_relative 'simple_login'
 
@@ -93,7 +91,7 @@ end
 
 get '/signup' do
   redirect '/' if logged_in?
-  
+
   erb :signup, layout: :layout
 end
 
