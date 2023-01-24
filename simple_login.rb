@@ -17,8 +17,9 @@ def existing_username?(username)
   @storage.usernames.include?(username)
 end
 
-def valid_password?(username, password)
- !@storage.verify_password(username, password).empty?
+def valid_password?(user, password)
+  hashed_pw = @storage.hashed_pw(user)
+ BCrypt::Password.new(hashed_pw) == password
 end
 
 def valid_username?(username)

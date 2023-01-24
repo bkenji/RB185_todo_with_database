@@ -166,12 +166,11 @@ class DatabasePersistence
     result = query(sql, username, password)
   end
 
-  def verify_password(user, password)
+  def hashed_pw(user)
     sql = "SELECT hashed_pw FROM users
-          WHERE hashed_pw = $1 AND
-            username = $2"
-    result = query(sql, password, user)
-    result.field_values("hashed_pw")
+          WHERE username = $1"
+    result = query(sql, user)
+    result.field_values("hashed_pw").first
   end
 
   def find_user_id(username) # used by create_list

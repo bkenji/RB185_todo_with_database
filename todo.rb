@@ -1,6 +1,7 @@
 require 'sinatra'
 require 'sinatra/content_for'
 require 'tilt/erubis'
+require 'bcrypt'
 
 
 require_relative 'database_persistence'
@@ -97,10 +98,10 @@ get '/signup' do
 end
 
 post '/signup' do
-  bcrypt_pw = params[:password]
+  bcrypt_pw = BCrypt::Password.create(params[:password])
   if valid_username?(params[:username]) &&
    params[:password].strip != ""
-    @storage.add_new_user(params[:username], params[:password])
+    @storage.add_new_user(params[:username], bcrypt_pw)
     session[:username] = params[:username] 
     redirect '/'
   elsif existing_username?(params[:username])
@@ -115,7 +116,7 @@ end
 post '/login' do
   username = params[:username]
   password = params[:password]
-
+  
   if valid_login?(username, password)
     session[:username] = username 
     redirect '/lists'
