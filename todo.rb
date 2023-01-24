@@ -26,11 +26,6 @@ helpers do
     @storage.verify_user(user, list)
   end
 
-  def valid_username?(username)
-    !existing_username?(username) &&
-    username =~ /^[A-Za-z0-9_]+$/
-  end
-
   def list_completed?(list)
     if list[:todos].nil?
       (todos_count(list).positive? &&

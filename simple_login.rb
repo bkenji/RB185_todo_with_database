@@ -20,3 +20,9 @@ end
 def valid_password?(password)
  !@storage.verify_password(password).empty?
 end
+
+def valid_username?(username)
+  !existing_username?(username) &&
+  username =~ /^[A-Za-z0-9_]+$/
+end
+
