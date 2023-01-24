@@ -1,5 +1,7 @@
-# RB175 Sinatra Todo Lists Project 
-## RB185_todo_with_database
+
+# RB185_todo_with_database 
+- Revisiting and enhancing RB175 todo list project
+
 
 ### Bonus Features:
 - Multi-user database-backed access
